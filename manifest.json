@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Search Engine Switcher",
   "version": "1.0",
-  "description": "Quickly switch your default search engine with Alt+Shift+S.",
+  "description": "Quickly switch your default search engine.",
   "permissions": [
     "contextMenus",
     "storage"
