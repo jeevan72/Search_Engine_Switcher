@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const engineSelector = document.getElementById('engineSelector');
   const queryInput = document.getElementById('queryInput');
   const searchBtn = document.getElementById('searchBtn');
-  const selectAllCheckbox = document.getElementById('selectAllCheckbox');
 
   let selectedEngines = [SEARCH_ENGINES[0]]; // Google is the default
 
@@ -49,52 +48,49 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderEngineButtons() {
     engineSelector.innerHTML = ''; // Clear existing buttons
     SEARCH_ENGINES.forEach(engine => {
-      const container = document.createElement('div');
-      container.className = 'engine-container';
-
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.id = engine.name;
-      checkbox.value = engine.name;
-      checkbox.checked = selectedEngines.some(e => e.name === engine.name);
-
       const button = document.createElement('button');
       button.className = 'engine-btn';
       button.innerHTML = `<img src="${engine.icon}" alt="${engine.name}"><span>${engine.name}</span>`;
-
+      
       if (selectedEngines.some(e => e.name === engine.name)) {
-        button.classList.add('active');
+        button.classList.add('selected');
       }
 
-      checkbox.addEventListener('change', () => {
-        if (checkbox.checked) {
-          selectedEngines.push(engine);
-        } else {
+      button.addEventListener('click', () => {
+        if (selectedEngines.some(e => e.name === engine.name)) {
           selectedEngines = selectedEngines.filter(e => e.name !== engine.name);
+        } else {
+          selectedEngines.push(engine);
         }
-        renderEngineButtons();
+        renderEngineButtons(); // Re-render to update the 'selected' class
       });
 
-      container.appendChild(checkbox);
-      container.appendChild(button);
-      engineSelector.appendChild(container);
+      engineSelector.appendChild(button);
     });
   }
 
   /**
    * Performs the search and loads results in new tabs.
    */
-  function performSearch() {
+  async function performSearch() {
     const query = queryInput.value.trim();
     if (!query || selectedEngines.length === 0) return;
 
-    selectedEngines.forEach(engine => {
+    const tabIds = [];
+    for (const engine of selectedEngines) {
       const url = engine.searchUrl.includes('{searchTerms}')
         ? engine.searchUrl.replace('{searchTerms}', encodeURIComponent(query))
         : engine.searchUrl;
 
-      chrome.tabs.create({ url });
-    });
+      const tab = await chrome.tabs.create({ url });
+      tabIds.push(tab.id);
+    }
+
+    if (tabIds.length > 1) {
+      chrome.tabs.group({ tabIds: tabIds }, (groupId) => {
+        console.log(`Tabs grouped with ID: ${groupId}`);
+      });
+    }
   }
 
   // --- EVENT LISTENERS ---
@@ -107,16 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') {
       performSearch();
     }
-  });
-
-  // Select/deselect all engines
-  selectAllCheckbox.addEventListener('change', () => {
-    if (selectAllCheckbox.checked) {
-      selectedEngines = [...SEARCH_ENGINES];
-    } else {
-      selectedEngines = [];
-    }
-    renderEngineButtons();
   });
 
   // --- INITIALIZATION ---
