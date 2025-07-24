@@ -115,9 +115,19 @@
       background-color: #333b47;
     }
 
+    .engine-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
     .engine-btn img {
       width: 32px;
       height: 32px;
+    }
+
+    .select-all-container {
+      margin-top: 1rem;
     }
     
     .engine-btn span {
@@ -135,6 +145,10 @@
     </div>
     <div class="engine-selector" id="engineSelector">
       <!-- Search engine buttons will be injected here by JavaScript -->
+    </div>
+    <div class="select-all-container">
+      <input type="checkbox" id="selectAllCheckbox">
+      <label for="selectAllCheckbox">Select All</label>
     </div>
   </div>
   <script src="popup.js"></script>

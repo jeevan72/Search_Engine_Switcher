@@ -37,8 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const engineSelector = document.getElementById('engineSelector');
   const queryInput = document.getElementById('queryInput');
   const searchBtn = document.getElementById('searchBtn');
+  const selectAllCheckbox = document.getElementById('selectAllCheckbox');
 
-  let activeEngine = SEARCH_ENGINES[0]; // Google is the default
+  let selectedEngines = [SEARCH_ENGINES[0]]; // Google is the default
 
   // --- FUNCTIONS ---
 
@@ -48,44 +49,52 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderEngineButtons() {
     engineSelector.innerHTML = ''; // Clear existing buttons
     SEARCH_ENGINES.forEach(engine => {
+      const container = document.createElement('div');
+      container.className = 'engine-container';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = engine.name;
+      checkbox.value = engine.name;
+      checkbox.checked = selectedEngines.some(e => e.name === engine.name);
+
       const button = document.createElement('button');
       button.className = 'engine-btn';
       button.innerHTML = `<img src="${engine.icon}" alt="${engine.name}"><span>${engine.name}</span>`;
-      
-      if (engine.name === activeEngine.name) {
+
+      if (selectedEngines.some(e => e.name === engine.name)) {
         button.classList.add('active');
       }
 
-      button.addEventListener('click', () => {
-        setActiveEngine(engine);
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          selectedEngines.push(engine);
+        } else {
+          selectedEngines = selectedEngines.filter(e => e.name !== engine.name);
+        }
+        renderEngineButtons();
       });
 
-      engineSelector.appendChild(button);
+      container.appendChild(checkbox);
+      container.appendChild(button);
+      engineSelector.appendChild(container);
     });
   }
 
   /**
-   * Sets the active search engine and updates the UI.
-   */
-  function setActiveEngine(engine) {
-    activeEngine = engine;
-    queryInput.placeholder = `Search with ${engine.name}...`;
-    renderEngineButtons(); // Re-render to update the 'active' class
-    queryInput.focus();
-  }
-
-  /**
-   * Performs the search and loads results in the iframe.
+   * Performs the search and loads results in new tabs.
    */
   function performSearch() {
     const query = queryInput.value.trim();
-    if (!query) return;
+    if (!query || selectedEngines.length === 0) return;
 
-    const url = activeEngine.searchUrl.includes('{searchTerms}')
-      ? activeEngine.searchUrl.replace('{searchTerms}', encodeURIComponent(query))
-      : activeEngine.searchUrl;
+    selectedEngines.forEach(engine => {
+      const url = engine.searchUrl.includes('{searchTerms}')
+        ? engine.searchUrl.replace('{searchTerms}', encodeURIComponent(query))
+        : engine.searchUrl;
 
-    chrome.tabs.create({ url });
+      chrome.tabs.create({ url });
+    });
   }
 
   // --- EVENT LISTENERS ---
@@ -98,6 +107,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') {
       performSearch();
     }
+  });
+
+  // Select/deselect all engines
+  selectAllCheckbox.addEventListener('change', () => {
+    if (selectAllCheckbox.checked) {
+      selectedEngines = [...SEARCH_ENGINES];
+    } else {
+      selectedEngines = [];
+    }
+    renderEngineButtons();
   });
 
   // --- INITIALIZATION ---
