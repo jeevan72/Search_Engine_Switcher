@@ -11,7 +11,7 @@ To install this extension manually, you will need to load it as an "unpacked ext
     * Navigate to the directory where you want to store the extension files.
     * Run the following command to clone the repository:
         ```bash
-        git clone [https://github.com/jeevan72/Search_Engine_Switcher]
+        git clone https://github.com/jeevan72/Search_Engine_Switcher
         ```
     * This will create a new folder with the extension's files in your current directory.
 
