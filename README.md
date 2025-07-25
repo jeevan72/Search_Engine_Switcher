@@ -1,4 +1,4 @@
-# My Awesome Chrome Extension
+# Chrome Extension
 
 Thank you for checking out My Awesome Chrome Extension! This document will guide you through the manual installation process.
 
